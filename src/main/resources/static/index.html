@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plumbline · Construction project management</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23ff4fa3'/><path d='M16 4v15' stroke='%230a1f3a' stroke-width='3'/><path d='M16 29l-6-9h12z' fill='%230a1f3a'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#0e2d54;--panel:#12396a;--deep:#0a2344;--ink:#ecf3ff;--mute:#9bb7da;--line:rgba(190,215,255,.22);--acc:#ff4fa3;--ok:#5fe0a8;--wip:#ffd23f;--pend:#9bb7da;--plan:#7db4ff;--hold:#ff7b7b}
+*{box-sizing:border-box;margin:0}
+body{font:15px/1.5 'Bricolage Grotesque',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;
+background-image:linear-gradient(rgba(190,215,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(190,215,255,.07) 1px,transparent 1px);background-size:28px 28px;background-attachment:fixed}
+.num,.tag{font-family:'IBM Plex Mono',ui-monospace,monospace}
+aside{width:224px;flex:none;padding:24px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background:var(--deep);border-right:1px solid var(--line)}
+.brand{display:flex;gap:11px;align-items:center;font-weight:800;font-size:22px;letter-spacing:-.02em;margin:0 6px 26px}
+.brand small{display:block;font-weight:400;font-size:12px;color:var(--mute);letter-spacing:0}
+nav{display:flex;flex-direction:column;gap:3px}
+nav button{width:100%;text-align:left;border:0;background:none;color:var(--mute);font:inherit;font-weight:600;padding:10px 12px;border-radius:4px;cursor:pointer;border-left:3px solid transparent}
+nav button:hover{color:var(--ink);background:rgba(255,255,255,.05)}
+nav button.on{color:var(--ink);background:rgba(255,255,255,.09);border-left-color:var(--acc)}
+.conn{margin:auto 6px 0;font-size:13px;color:var(--mute);display:flex;gap:8px;align-items:center}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--pend)}.live .dot{background:var(--ok)}.demo .dot{background:var(--wip)}
+main{flex:1;min-width:0;max-width:1300px;padding:30px clamp(16px,3vw,44px) 70px}
+.top{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:26px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.top>div:first-child{flex:1;min-width:220px}
+.sub{color:var(--mute);font-size:14px}
+h1{font-size:clamp(30px,4.5vw,50px);font-weight:800;letter-spacing:-.035em;line-height:1}
+h2{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:34px 0 14px}
+input,select{font:inherit;color:var(--ink);background:var(--deep);border:1px solid var(--line);border-radius:4px;padding:10px 12px;width:100%}
+input:focus,select:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+#q{width:250px}
+.btn{font:inherit;font-weight:600;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--ink);padding:9px 15px;border-radius:4px;cursor:pointer;transition:background .15s,transform .15s}
+.btn:hover{background:rgba(255,255,255,.12)}.btn:active{transform:scale(.97)}
+.btn.p{background:var(--acc);border-color:var(--acc);color:#0a1f3a}.btn.p:hover{background:#ff72b6}
+.btn.sm{padding:4px 10px;font-size:13px}.btn.d:hover{background:var(--hold);border-color:var(--hold);color:#0a1f3a}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.card{background:rgba(18,57,106,.78);border:1px solid var(--line);border-radius:6px;padding:18px}
+.card h3{font-size:21px;font-weight:600;letter-spacing:-.015em;line-height:1.2;margin:6px 0 2px}
+.tag{font-size:12px;color:var(--mute)}
+.row,.meta{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.meta{font-size:13.5px;color:var(--mute);flex-wrap:wrap}
+.mute{color:var(--mute)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.stat b{display:block;font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin:6px 0 0}
+.stat.acc{background:var(--acc);border-color:var(--acc);color:#0a1f3a}.stat.acc .tag{color:#0a1f3a}
+.chip{font-size:12.5px;font-weight:600;padding:2px 9px;border-radius:3px;color:#0a1f3a;background:var(--c);white-space:nowrap}
+.COMPLETED{--c:var(--ok)}.IN_PROGRESS{--c:var(--wip)}.PENDING{--c:var(--pend)}.PLANNED{--c:var(--plan)}.ON_HOLD{--c:var(--hold)}
+.tower{display:flex;gap:4px;flex-wrap:wrap;margin:16px 0 10px;min-height:30px;align-items:flex-end}
+.blk{width:17px;height:30px;border-radius:2px;border:1.5px solid var(--c);transition:transform .15s}
+.blk:hover{transform:translateY(-4px)}
+.blk.COMPLETED{background:var(--c)}
+.blk.IN_PROGRESS{background:repeating-linear-gradient(-45deg,var(--c) 0 3px,transparent 3px 7px)}
+.blk.PENDING{border-style:dashed}
+.pct{font-size:15px;color:var(--ink)}
+.crew{display:flex;padding-left:6px}
+.av{width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--deep);display:inline-grid;place-items:center;font-size:12px;font-weight:800;margin-left:-6px;border:2px solid var(--panel)}
+.av.big{width:46px;height:46px;font-size:16px;margin:0;border-color:var(--acc)}
+.acts{display:flex;gap:6px;margin-top:16px;align-items:center}.acts .sp{flex:1}
+.pill{font-size:12.5px;border:1px solid var(--line);border-radius:3px;padding:1px 8px;margin:2px 4px 0 0;display:inline-block}
+.sites{margin-top:10px;min-height:26px}
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+.col{border:1px dashed var(--line);border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:140px}
+.col h4{display:flex;justify-content:space-between;align-items:center}
+.tk h3{font-size:17px}
+.wl{display:grid;grid-template-columns:minmax(130px,230px) 1fr 28px;gap:14px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.wl:last-child{border:0}
+.wb{height:12px;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.wb i{display:block;height:100%;background:var(--acc);transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:rgba(18,57,106,.78)}
+table{width:100%;border-collapse:collapse;min-width:860px}
+th{text-align:left;font-weight:600;color:var(--mute);font-size:13.5px;padding:12px 14px;border-bottom:1px solid var(--line)}
+td{padding:11px 14px;border-bottom:1px solid var(--line)}tr:last-child td{border:0}
+tbody tr:hover{background:rgba(255,255,255,.05)}
+dialog{border:1px solid var(--line);border-radius:8px;background:var(--deep);color:var(--ink);padding:26px;width:min(470px,92vw);margin:auto}
+dialog::backdrop{background:rgba(3,12,28,.7);backdrop-filter:blur(3px)}
+dialog[open]{animation:pop .2s}@keyframes pop{from{opacity:0;transform:scale(.96)}}
+#ft{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0 0 8px}
+label{display:block;font-size:13.5px;color:var(--mute);margin:14px 0 5px}
+.end{justify-content:flex-end;margin-top:24px}
+#toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,30px);background:var(--ink);color:var(--deep);font-weight:600;padding:12px 18px;border-radius:4px;opacity:0;transition:.3s;pointer-events:none;max-width:90vw;z-index:9}
+#toast.on{opacity:1;transform:translate(-50%,0)}#toast.err{background:var(--hold)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+.empty,.err{max-width:520px}
+@media(max-width:860px){body{display:block}aside{position:static;width:auto;height:auto;flex-direction:row;align-items:center;overflow-x:auto;padding:12px}.brand{margin:0 14px 0 0}.brand small,.conn{display:none}nav{flex-direction:row}nav button{white-space:nowrap;width:auto}.board{grid-template-columns:1fr}#q{width:100%}.wl{grid-template-columns:110px 1fr 24px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<aside>
+  <div class="brand">
+    <svg width="34" height="34" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#ff4fa3"/><path d="M16 4v15" stroke="#0a1f3a" stroke-width="3"/><path d="M16 29l-6-9h12z" fill="#0a1f3a"/></svg>
+    <div>Plumbline<small>Project management</small></div>
+  </div>
+  <nav></nav>
+  <div class="conn" id="conn"><span class="dot"></span><span id="cs">Connecting…</span></div>
+</aside>
+<main>
+  <header class="top">
+    <div><div class="sub" id="sub"></div><h1 id="title"></h1></div>
+    <input id="q" type="search" placeholder="Search this page" aria-label="Search" hidden>
+    <button class="btn p" id="new" hidden></button>
+  </header>
+  <div id="view"></div>
+</main>
+<dialog id="dlg"><form id="ff"><h2 id="ft"></h2><div id="fl"></div>
+  <div class="acts end"><button type="button" class="btn" id="cancel">Cancel</button><button class="btn p">Save</button></div></form></dialog>
+<div id="toast" role="status"></div>
+
+<script>
+const API=location.protocol.startsWith('http')?'':'http://localhost:8080';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const pad=n=>String(n).padStart(3,'0');
+const PS=['PLANNED','IN_PROGRESS','COMPLETED','ON_HOLD'],TS=['PENDING','IN_PROGRESS','COMPLETED'];
+const NAME={projects:'projectName',workers:'workerName',tasks:'taskName'};
+const E={
+ projects:{id:'projectId',label:'project',f:[['projectName','Project name','text',1],['location','Location','text'],['startDate','Start date','date'],['endDate','Handover date','date'],['status','Status','select',0,PS]]},
+ workers:{id:'workerId',label:'worker',f:[['workerName','Full name','text',1],['role','Role','text'],['phone','Phone','tel']]},
+ tasks:{id:'taskId',label:'task',f:[['projectId','Project','ref:projects',1],['taskName','Task name','text',1],['status','Status','select',0,TS]]},
+ assignments:{id:'assignmentId',label:'assignment',f:[['projectId','Project','ref:projects',1],['taskId','Task','ref:tasks',1],['workerId','Worker','ref:workers',1]]}
+};
+const S={projects:[],workers:[],tasks:[],assignments:[]};
+const R={joined:[],summary:[],busy:[]};
+let view='overview',q='',demo=false,D;
+
+/* ---------- sample data (used only if the backend is offline) ---------- */
+const seed=()=>({
+ projects:[['Chennai Mall','Chennai','2026-01-10','2027-06-30','IN_PROGRESS'],['IT Park Building','Bangalore','2026-02-15','2027-02-28','IN_PROGRESS'],['Hospital Construction','Coimbatore','2026-03-01','2027-08-31','IN_PROGRESS'],['Apartment Project','Chennai','2026-04-10','2027-04-30','PLANNED']].map((r,i)=>({projectId:i+1,projectName:r[0],location:r[1],startDate:r[2],endDate:r[3],status:r[4]})),
+ workers:[['Ravi Kumar','Civil Engineer'],['Arun Kumar','Electrician'],['Suresh','Plumber'],['Karthik','Mason'],['Vijay','Carpenter'],['Manoj','Site Supervisor']].map((r,i)=>({workerId:i+1,workerName:r[0],role:r[1],phone:'98765432'+(10+i)})),
+ tasks:[[1,'Foundation Work','COMPLETED'],[1,'Concrete Work','COMPLETED'],[1,'Electrical Work','IN_PROGRESS'],[1,'Painting Work','PENDING'],[2,'Building Foundation','COMPLETED'],[2,'Structural Work','IN_PROGRESS'],[2,'Electrical Installation','PENDING'],[3,'Ground Work','COMPLETED'],[3,'Plumbing Work','IN_PROGRESS'],[3,'Roof Construction','PENDING'],[3,'Painting Work','PENDING'],[4,'Site Preparation','PENDING'],[4,'Foundation Work','PENDING']].map((r,i)=>({taskId:i+1,projectId:r[0],taskName:r[1],status:r[2]})),
+ assignments:[[1,1,1,'2026-01-12'],[1,4,2,'2026-01-20'],[1,2,3,'2026-02-10'],[1,5,4,'2026-03-01'],[2,1,5,'2026-02-20'],[2,4,6,'2026-03-01'],[2,2,7,'2026-03-15'],[3,4,8,'2026-03-10'],[3,3,9,'2026-04-01'],[3,1,10,'2026-05-01'],[3,5,11,'2026-06-01'],[4,6,12,'2026-04-15'],[4,4,13,'2026-05-01']].map((r,i)=>({assignmentId:i+1,projectId:r[0],workerId:r[1],taskId:r[2],assignedDate:r[3]}))
+});
+const sync=pid=>{const ts=D.tasks.filter(t=>t.projectId==pid),pr=D.projects.find(x=>x.projectId==pid);
+ if(!pr||!ts.length||pr.status=='ON_HOLD')return;
+ pr.status=ts.every(t=>t.status=='COMPLETED')?'COMPLETED':ts.some(t=>t.status!='PENDING')?'IN_PROGRESS':'PLANNED'};
+function demoReport(p,d=D){
+ const pr=d.projects,tk=d.tasks;
+ if(p.endsWith('assignment-details'))return d.assignments.map(a=>{const P=pr.find(x=>x.projectId==a.projectId),W=d.workers.find(x=>x.workerId==a.workerId),T=tk.find(x=>x.taskId==a.taskId);
+  return{...a,projectName:P?.projectName,location:P?.location,workerName:W?.workerName,role:W?.role,phone:W?.phone,taskName:T?.taskName,taskStatus:T?.status}});
+ const sm=pr.map(x=>{const ts=tk.filter(t=>t.projectId==x.projectId);return{projectId:x.projectId,projectName:x.projectName,status:x.status,totalTasks:ts.length,completedTasks:ts.filter(t=>t.status=='COMPLETED').length}});
+ if(p.endsWith('projects-summary'))return sm;
+ const w=sm.filter(x=>x.totalTasks),avg=w.reduce((t,x)=>t+x.totalTasks,0)/(w.length||1);
+ return w.filter(x=>x.totalTasks>avg).map(x=>({...x,averageTasks:avg})).sort((a,b)=>b.totalTasks-a.totalTasks)}
+function demoApi(m,p,b){
+ if(p.startsWith('/reports/'))return demoReport(p);
+ const[,k,id]=p.split('/'),a=D[k],ik=E[k].id;
+ if(m=='GET')return a.map(x=>({...x}));
+ if(m=='POST'){
+  if(k=='assignments'){
+   if(!D.tasks.some(t=>t.taskId==b.taskId&&t.projectId==b.projectId))throw new Error('That task does not belong to the selected project.');
+   if(D.assignments.some(x=>x.taskId==b.taskId&&x.workerId==b.workerId))throw new Error('This worker is already assigned to that task.');
+   b.assignedDate=today();const t=D.tasks.find(x=>x.taskId==b.taskId);if(t.status=='PENDING'){t.status='IN_PROGRESS';sync(t.projectId)}}
+  b[ik]=Math.max(0,...a.map(x=>x[ik]))+1;a.push(b);if(k=='tasks')sync(b.projectId);return b}
+ const i=a.findIndex(x=>x[ik]==id),pid=a[i]?.projectId;
+ if(m=='PUT'){b[ik]=+id;a[i]=b;if(k=='tasks')sync(b.projectId);return b}
+ if(k=='projects'){D.tasks=D.tasks.filter(t=>t.projectId!=id);D.assignments=D.assignments.filter(x=>x.projectId!=id)}
+ if(k=='workers')D.assignments=D.assignments.filter(x=>x.workerId!=id);
+ if(k=='tasks')D.assignments=D.assignments.filter(x=>x.taskId!=id);
+ D[k]=D[k].filter(x=>x[ik]!=id);if(k=='tasks')sync(pid)
+}
+async function api(m,p,b){
+ if(demo)return demoApi(m,p,b);
+ const r=await fetch(API+p,{method:m,headers:{'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined});
+ if(!r.ok){let msg='The server answered '+r.status+' for '+m+' '+p+'.';try{msg=(await r.json()).message||msg}catch(_){}throw new Error(msg)}
+ const t=await r.text();return t?JSON.parse(t):null
+}
+
+/* ---------- helpers ---------- */
+const by=(a,k,v)=>a.filter(x=>x[k]==v);
+const nm=(k,id)=>S[k].find(x=>x[E[k].id]==id)?.[NAME[k]]??'Unknown';
+const chip=s=>`<span class="chip ${s}">${esc((s||'none').replace('_',' ').toLowerCase())}</span>`;
+const ini=n=>String(n).split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const days=d=>d?Math.ceil((new Date(d)-new Date(today()))/864e5):null;
+const fmt=d=>d?new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'No date';
+const hit=(x,extra='')=>!q||(Object.values(x).join(' ')+' '+extra).toLowerCase().includes(q);
+const btns=(k,id)=>`<button class="btn sm" data-a="edit" data-k="${k}" data-i="${id}">Edit</button><button class="btn sm d" data-a="del" data-k="${k}" data-i="${id}">Delete</button>`;
+const empty=()=>`<div class="card empty"><h3>${q?'No matches':'Nothing here yet'}</h3><p class="mute">${q?'Try a different search term.':'Use the button at the top to add the first record.'}</p></div>`;
+const stat=(l,v,s,a)=>`<div class="card stat${a?' acc':''}"><span class="tag">${l}</span><b>${v}</b><span class="meta" style="color:inherit;opacity:.8">${s}</span></div>`;
+
+/* ---------- views ---------- */
+function projCard(p,withActs=true){
+ const ts=by(S.tasks,'projectId',p.projectId),sm=R.summary.find(x=>x.projectId==p.projectId),done=sm?+sm.completedTasks:ts.filter(t=>t.status=='COMPLETED').length,pct=ts.length?Math.round(done/ts.length*100):0;
+ const crew=[...new Set(by(S.assignments,'projectId',p.projectId).map(a=>a.workerId))],d=days(p.endDate),o={COMPLETED:0,IN_PROGRESS:1,PENDING:2};
+ const left=p.status=='COMPLETED'?'Handed over':d==null?'':d<0?-d+' days past handover':d+' days to handover';
+ return `<article class="card">
+ <div class="row"><span class="tag">PRJ-${pad(p.projectId)}</span>${chip(p.status)}</div>
+ <h3>${esc(p.projectName)}</h3><div class="mute">${esc(p.location||'Location not set')}</div>
+ <div class="tower">${[...ts].sort((a,b)=>o[a.status]-o[b.status]).map(t=>`<i class="blk ${t.status}" title="${esc(t.taskName)}: ${esc(t.status)}"></i>`).join('')||'<span class="mute">No tasks yet</span>'}</div>
+ <div class="meta"><span class="pct"><b class="num">${pct}%</b> built · ${done} of ${ts.length} tasks</span><span>${left}</span></div>
+ <div class="meta" style="margin-top:14px"><span class="crew">${crew.slice(0,5).map(w=>`<span class="av" title="${esc(nm('workers',w))}">${esc(ini(nm('workers',w)))}</span>`).join('')}${crew.length>5?`<span class="av">+${crew.length-5}</span>`:''}</span><span>${fmt(p.startDate)} to ${fmt(p.endDate)}</span></div>
+ ${withActs?`<div class="acts">${btns('projects',p.projectId)}</div>`:''}</article>`}
+function overview(){
+ const T=S.tasks,done=T.filter(t=>t.status=='COMPLETED').length;
+ const load=S.workers.map(w=>({w,n:by(S.assignments,'workerId',w.workerId).length})).sort((a,b)=>b.n-a.n),mx=Math.max(1,...load.map(x=>x.n));
+ return `<div class="stats">
+ ${stat('Active sites',S.projects.filter(p=>p.status=='IN_PROGRESS').length,'of '+S.projects.length+' projects',1)}
+ ${stat('Work complete',(T.length?Math.round(done/T.length*100):0)+'%',done+' of '+T.length+' tasks')}
+ ${stat('Open tasks',T.length-done,'pending or in progress')}
+ ${stat('Crew',S.workers.length,S.assignments.length+' assignments')}</div>
+ <h2>Sites, one block per task</h2>
+ <div class="grid">${S.projects.map(p=>projCard(p,false)).join('')||empty()}</div>
+ <h2>Crew workload</h2>
+ <div class="card">${load.map(({w,n})=>`<div class="wl"><span>${esc(w.workerName)} <span class="mute">${esc(w.role)}</span></span><div class="wb"><i style="width:${n/mx*100}%"></i></div><b class="num">${n}</b></div>`).join('')||'<p class="mute">No workers yet.</p>'}</div>`}
+function projects(){const l=S.projects.filter(p=>hit(p));return l.length?`<div class="grid">${l.map(p=>projCard(p)).join('')}</div>`:empty()}
+function tasks(){
+ return `<div class="board">${TS.map((s,si)=>{
+  const l=S.tasks.filter(t=>t.status==s&&hit(t,nm('projects',t.projectId)));
+  return `<section class="col"><h4>${chip(s)}<b class="num">${l.length}</b></h4>${l.map(t=>{
+   const who=by(S.assignments,'taskId',t.taskId).map(a=>nm('workers',a.workerId)).join(', ');
+   return `<div class="card tk"><span class="tag">TSK-${pad(t.taskId)} · ${esc(nm('projects',t.projectId))}</span><h3>${esc(t.taskName)}</h3><div class="mute">${esc(who||'Nobody assigned')}</div>
+   <div class="acts">${si>0?`<button class="btn sm" data-a="mv" data-i="${t.taskId}" data-d="-1" title="Move back" aria-label="Move back">◀</button>`:''}${si<2?`<button class="btn sm" data-a="mv" data-i="${t.taskId}" data-d="1" title="Move forward" aria-label="Move forward">▶</button>`:''}<span class="sp"></span>${btns('tasks',t.taskId)}</div></div>`}).join('')||'<p class="mute">No tasks in this column.</p>'}</section>`}).join('')}</div>`}
+function workers(){
+ const l=S.workers.filter(w=>hit(w));
+ return l.length?`<div class="grid">${l.map(w=>{
+  const as=by(S.assignments,'workerId',w.workerId),sites=[...new Set(as.map(a=>nm('projects',a.projectId)))];
+  return `<article class="card"><div class="row"><div class="av big">${esc(ini(w.workerName))}</div><span class="tag">WRK-${pad(w.workerId)}</span></div>
+  <h3>${esc(w.workerName)}</h3><div class="mute">${esc(w.role||'Role not set')}</div>
+  <div class="meta" style="margin-top:10px"><a class="num" style="color:var(--ink)" href="tel:${esc(w.phone)}">${esc(w.phone||'No phone')}</a><span>${as.length} assignment${as.length==1?'':'s'}</span></div>
+  <div class="sites">${sites.map(s=>`<span class="pill">${esc(s)}</span>`).join('')}</div><div class="acts">${btns('workers',w.workerId)}</div></article>`}).join('')}</div>`:empty()}
+function assigns(){
+ const l=R.joined.filter(a=>hit(a)).sort((a,b)=>String(b.assignedDate||'').localeCompare(String(a.assignedDate||'')));
+ return l.length?`<div class="tw"><table><thead><tr><th>ID</th><th>Project</th><th>Task</th><th>Worker</th><th>Phone</th><th>Task status</th><th>Assigned</th><th></th></tr></thead><tbody>${l.map(a=>`<tr><td class="num">#${a.assignmentId}</td><td>${esc(a.projectName)}<div class="mute">${esc(a.location)}</div></td><td>${esc(a.taskName)}</td><td>${esc(a.workerName)}<div class="mute">${esc(a.role)}</div></td><td class="num">${esc(a.phone)}</td><td>${chip(a.taskStatus)}</td><td>${fmt(a.assignedDate)}</td><td><button class="btn sm d" data-a="del" data-k="assignments" data-i="${a.assignmentId}">Remove</button></td></tr>`).join('')}</tbody></table></div>`:empty()}
+function reports(){
+ const sm=R.summary,w=sm.filter(x=>x.totalTasks),avg=w.length?w.reduce((t,x)=>t+x.totalTasks,0)/w.length:0,mx=Math.max(1,...sm.map(x=>x.totalTasks));
+ const row=(n,pc,txt,c)=>`<div class="wl"><span>${esc(n)}</span><div class="wb"><i style="width:${pc}%;${c?'background:'+c:''}"></i></div><b class="num">${txt}</b></div>`;
+ return `<div class="two">
+ <section class="card"><h3>Projects with more tasks than average</h3><p class="mute">The average is ${avg.toFixed(2)} tasks per project. Found with an SQL subquery.</p>
+ ${R.busy.map(b=>row(b.projectName,b.totalTasks/mx*100,b.totalTasks)).join('')||'<p class="mute" style="margin-top:12px">No project is above average.</p>'}</section>
+ <section class="card"><h3>Completed tasks per project</h3><p class="mute">Counted by the count_completed_tasks database function.</p>
+ ${sm.map(x=>row(x.projectName,x.totalTasks?x.completedTasks/x.totalTasks*100:0,x.completedTasks+'/'+x.totalTasks,'var(--ok)')).join('')||'<p class="mute">No projects yet.</p>'}</section></div>
+ <h2>How the database keeps things in sync</h2><div class="two">
+ <section class="card"><h3>Assign worker procedure</h3><p class="mute">The Assignments page calls assign_worker. It rejects a task from another project and a duplicate assignment, and stamps today's date.</p></section>
+ <section class="card"><h3>Status triggers</h3><p class="mute">Assigning a worker starts a pending task. Any task change recalculates its project: all done means completed, any started means in progress.</p></section></div>`}
+const V={overview:['Overview','Every site at a glance',overview],projects:['Projects','Sites, schedules and progress',projects,'New project'],tasks:['Tasks','Move work across the board',tasks,'New task'],workers:['Workers','Your crew and where they are',workers,'New worker'],assignments:['Assignments','Workers joined with their projects and tasks',assigns,'Assign worker'],reports:['Reports','Live answers from your database',reports]};
+
+function render(){
+ const[t,s,f,n]=V[view];
+ $('#title').textContent=t;$('#sub').textContent=s;
+ $('#q').hidden=$('#new').hidden=view=='overview';$('#new').textContent='+ '+(n||'');
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==view));
+ $('#view').innerHTML=f()}
+
+/* ---------- data flow ---------- */
+async function load(quiet){
+ if(!quiet)$('#view').innerHTML='<p class="mute">Loading site data…</p>';
+ let r;
+ try{r=await Promise.all(Object.keys(S).map(k=>api('GET','/'+k)))}
+ catch(e){
+  const net=e instanceof TypeError,where=esc(API||location.origin);
+  $('#conn').className='conn';$('#cs').textContent=net?'Backend offline':'Backend error';
+  $('#view').innerHTML=`<div class="card err"><h3>${net?"Can't reach the backend":'The backend answered with an error'}</h3><p class="mute" style="margin-top:6px">${net?`Nothing answered at ${where}. Start the Spring Boot app, check that MySQL is running, then retry.`:`${esc(e.message)} Check the IntelliJ console for the cause, and make sure you ran the full database script and restarted the app.`}</p><div class="acts"><button class="btn p" data-a="retry">Retry</button><button class="btn" data-a="demo">Preview with sample data</button></div></div>`;return}
+ Object.keys(S).forEach((k,i)=>S[k]=r[i]);
+ let warn='';
+ const rp=n=>api('GET','/reports/'+n).catch(e=>{warn=e.message;return demoReport('/reports/'+n,S)});
+ [R.joined,R.summary,R.busy]=await Promise.all(['assignment-details','projects-summary','busy-projects'].map(rp));
+ $('#conn').className='conn '+(demo?'demo':'live');$('#cs').textContent=demo?'Sample data (not saved)':'Connected to API';
+ render();
+ if(warn)toast('Report endpoints failed, so numbers are calculated locally. '+warn,1)}
+async function run(fn,msg){try{await fn();toast(msg);await load(true)}catch(e){toast(e.message||'Something went wrong.',1)}}
+let tt;function toast(m,err){const t=$('#toast');t.textContent=m;t.className='on'+(err?' err':'');clearTimeout(tt);tt=setTimeout(()=>t.className='',3600)}
+
+/* ---------- form ---------- */
+const opts=(l,v,ph)=>(ph?'<option value="">Select…</option>':'')+l.map(([a,b])=>`<option value="${esc(a)}"${a==v?' selected':''}>${esc(b)}</option>`).join('');
+const refs=k=>S[k].map(x=>[x[E[k].id],x[NAME[k]]]);
+function openForm(k,id){
+ const c=E[k],row=id?S[k].find(x=>x[c.id]==id):{assignedDate:today(),startDate:today()},f=$('#ff');
+ f.dataset.k=k;f.dataset.i=id||'';
+ $('#ft').textContent=(id?'Edit ':'New ')+c.label;
+ $('#fl').innerHTML=c.f.map(([n,l,t,req,o])=>{
+  const v=row[n]??'',r=req?' required':'';
+  return `<label for="f_${n}">${l}</label>`+(t=='select'?`<select id="f_${n}" name="${n}"${r}>${opts(o.map(s=>[s,s.replace('_',' ').toLowerCase()]),v)}</select>`
+  :t.startsWith('ref')?`<select id="f_${n}" name="${n}" data-v="${esc(v)}"${r}>${opts(refs(t.slice(4)),v,1)}</select>`
+  :`<input id="f_${n}" name="${n}" type="${t}" value="${esc(v)}"${r}>`)}).join('');
+ if(k=='assignments'){const pj=f.elements.projectId,tk=f.elements.taskId;
+  const fill=()=>{tk.innerHTML=opts(by(S.tasks,'projectId',pj.value).map(t=>[t.taskId,t.taskName]),tk.dataset.v,1);tk.dataset.v=''};
+  pj.onchange=fill;fill()}
+ $('#dlg').showModal()}
+$('#ff').onsubmit=e=>{
+ e.preventDefault();const f=e.target,{k,i}=f.dataset,b={};
+ E[k].f.forEach(([n,,t])=>{const v=f.elements[n].value;b[n]=t.startsWith('ref')?+v:v===''?null:v});
+ if(b.startDate&&b.endDate&&b.endDate<b.startDate){toast('The handover date must be on or after the start date.',1);return}
+ $('#dlg').close();
+ run(()=>i?api('PUT',`/${k}/${i}`,b):api('POST','/'+k,b),i?'Changes saved':'Created '+E[k].label)};
+$('#cancel').onclick=()=>$('#dlg').close();
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-a]');if(!b)return;const{a,k,i,d}=b.dataset;
+ if(a=='nav'){view=b.dataset.v;q='';$('#q').value='';render()}
+ else if(a=='edit')openForm(k,i);
+ else if(a=='del'){if(confirm('Delete this '+E[k].label+'?'+(k=='assignments'?'':' Its linked tasks and assignments will be removed too.')+' This cannot be undone.'))run(()=>api('DELETE',`/${k}/${i}`),'Deleted '+E[k].label)}
+ else if(a=='mv'){const t=S.tasks.find(x=>x.taskId==i);run(()=>api('PUT','/tasks/'+i,{...t,status:TS[TS.indexOf(t.status)+ +d]}),'Task moved')}
+ else if(a=='retry')load();
+ else if(a=='demo'){demo=true;D=seed();load()}});
+$('#q').oninput=e=>{q=e.target.value.toLowerCase().trim();render()};
+$('#new').onclick=()=>openForm(view);
+$('nav').innerHTML=Object.entries(V).map(([k,v])=>`<button data-a="nav" data-v="${k}">${v[0]}</button>`).join('');
+load();
+</script>
+</body>
+</html>
